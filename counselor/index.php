@@ -21,6 +21,9 @@ $res = sb_request('GET', 'appointments', $queryParams, null, $token);
 $failed = ($res['status'] !== 200 || !is_array($res['data']));
 $all = $failed ? [] : $res['data'];
 
+// Fetch all assigned/handled patients for counselor
+$allPatients = get_counselor_patients($uid, $token);
+
 // Direct patient profile search for the pop-up modal window (matching admin feature)
 $patientResults = [];
 if ($search !== '') {
@@ -183,6 +186,27 @@ page_start('counselor', 'Dashboard', '/counselor/', greeting() . ', ' . $fullNam
                 </div>
 
                 <div class="stack">
+                    <!-- All Patient Records Section -->
+                    <div class="card">
+                        <div class="card-head">
+                            <h2>All Patients</h2>
+                            <a class="link" href="/counselor/patients.php">View All</a>
+                        </div>
+                        <?php if (empty($allPatients)): ?>
+                            <p class="empty">No active patients found.</p>
+                        <?php else: ?>
+                            <?php foreach (array_slice($allPatients, 0, 5) as $pat): ?>
+                                <div class="result-item row-between">
+                                    <div>
+                                        <strong><?php echo e($pat['full_name']); ?></strong>
+                                        <small><?php echo e($pat['email'] ?? 'No email'); ?> &middot; <?php echo e(ucfirst($pat['patient_type'] ?? 'Student')); ?></small>
+                                    </div>
+                                    <a class="btn-sm" href="/counselor/record.php?patient_id=<?php echo e($pat['id']); ?>">Record</a>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+
                     <div class="card">
                         <div class="card-head"><h2>Recent Records</h2><a class="link" href="/counselor/record.php">Add record</a></div>
                         <?php if (!$records): ?>
