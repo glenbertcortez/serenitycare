@@ -21,8 +21,9 @@ $res = sb_request('GET', 'appointments', $queryParams, null, $token);
 $failed = ($res['status'] !== 200 || !is_array($res['data']));
 $all = $failed ? [] : $res['data'];
 
-// Fetch all assigned/handled patients for counselor
-$allPatients = get_counselor_patients($uid, $token);
+// Direktang Kunin ang Lahat ng Patients para sa All Patients card
+$patRes = sb_request('GET', 'profiles', 'select=id,full_name,email,patient_type&role=eq.patient&order=full_name.asc', null, $token);
+$allPatients = ($patRes['status'] === 200 && is_array($patRes['data'])) ? $patRes['data'] : [];
 
 // Direct patient profile search for the pop-up modal window (matching admin feature)
 $patientResults = [];
@@ -193,7 +194,7 @@ page_start('counselor', 'Dashboard', '/counselor/', greeting() . ', ' . $fullNam
                             <a class="link" href="/counselor/patients.php">View All</a>
                         </div>
                         <?php if (empty($allPatients)): ?>
-                            <p class="empty">No active patients found.</p>
+                            <p class="empty">No patients found.</p>
                         <?php else: ?>
                             <?php foreach (array_slice($allPatients, 0, 5) as $pat): ?>
                                 <div class="result-item row-between">
