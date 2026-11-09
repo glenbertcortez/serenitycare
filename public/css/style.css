@@ -469,3 +469,8 @@ progress::-webkit-progress-value { background: var(--green); border-radius: 999p
 progress::-moz-progress-bar { background: var(--green); border-radius: 999px; }
 
 @media (max-width: 960px) { .grid-2 { grid-template-columns: 1fr; } }
+/* ---------- All Records list (counselor dashboard, right column) ---------- */
+.records-scroll { max-height: 360px; overflow-y: auto; padding-right: 4px; }
+.records-scroll .result-item:last-child { margin-bottom: 0; }
+.result-item.row-between { gap: 12px; }
+.result-item.row-between .btn-sm { flex-shrink: 0; }
