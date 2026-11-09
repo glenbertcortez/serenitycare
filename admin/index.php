@@ -187,7 +187,20 @@ page_start('counselor', 'Dashboard', '/counselor/', greeting() . ', ' . $fullNam
                 </div>
 
                 <div class="stack">
-                    <!-- All Patient Records Section -->
+                    <div class="card">
+                        <div class="card-head"><h2>Recent Records</h2><a class="link" href="/counselor/record.php">Add record</a></div>
+                        <?php if (!$records): ?>
+                            <p class="empty">No records yet.</p>
+                        <?php else: foreach ($records as $r): ?>
+                            <div class="result-item">
+                                <strong><?php echo e($r['diagnosis']); ?></strong>
+                                <small><?php echo e($r['patient']['full_name'] ?? 'Patient'); ?> · <?php echo !empty($r['shared_with_patient']) ? 'Shared' : 'Private'; ?> · <?php echo e(fmt_dt($r['created_at'], 'M d')); ?></small>
+                            </div>
+                        <?php endforeach; endif; ?>
+                        <div class="note-box"><strong>Counselor note</strong><small>Session notes are private to you. Only diagnoses you mark as shared are visible to patients.</small></div>
+                    </div>
+
+                    <!-- All Patient Records Section (Inilagay na sa ilalim ng Recent Records) -->
                     <div class="card">
                         <div class="card-head">
                             <h2>All Patients</h2>
@@ -206,19 +219,6 @@ page_start('counselor', 'Dashboard', '/counselor/', greeting() . ', ' . $fullNam
                                 </div>
                             <?php endforeach; ?>
                         <?php endif; ?>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-head"><h2>Recent Records</h2><a class="link" href="/counselor/record.php">Add record</a></div>
-                        <?php if (!$records): ?>
-                            <p class="empty">No records yet.</p>
-                        <?php else: foreach ($records as $r): ?>
-                            <div class="result-item">
-                                <strong><?php echo e($r['diagnosis']); ?></strong>
-                                <small><?php echo e($r['patient']['full_name'] ?? 'Patient'); ?> · <?php echo !empty($r['shared_with_patient']) ? 'Shared' : 'Private'; ?> · <?php echo e(fmt_dt($r['created_at'], 'M d')); ?></small>
-                            </div>
-                        <?php endforeach; endif; ?>
-                        <div class="note-box"><strong>Counselor note</strong><small>Session notes are private to you. Only diagnoses you mark as shared are visible to patients.</small></div>
                     </div>
                 </div>
             </div>
