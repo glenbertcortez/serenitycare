@@ -6,8 +6,8 @@ $me = require_role('counselor');
 $uid = $me['user']['id'];
 $token = $me['token'];
 
-// Capture search query parameter
-$search = trim($_GET['q'] ?? '');
+// Capture search query parameter (sanitized so it is safe inside a PostgREST filter)
+$search = pg_term($_GET['q'] ?? '');
 
 // Filter tabs + details panel driven by URL parameters
 $status = $_GET['status'] ?? 'all';
@@ -21,10 +21,6 @@ $res = sb_request('GET', 'appointments', $queryParams, null, $token);
 $failed = ($res['status'] !== 200 || !is_array($res['data']));
 $all = $failed ? [] : $res['data'];
 
-// Direktang Kunin ang Lahat ng Patients para sa All Patients card
-$patRes = sb_request('GET', 'profiles', 'select=id,full_name,email,patient_type&role=eq.patient&order=full_name.asc', null, $token);
-$allPatients = ($patRes['status'] === 200 && is_array($patRes['data'])) ? $patRes['data'] : [];
-
 // Direct patient profile search for the pop-up modal window (matching admin feature)
 $patientResults = [];
 if ($search !== '') {
@@ -37,10 +33,13 @@ if ($search !== '') {
     }
 }
 
+// All records written by this counselor (newest first).
+// The first 3 are used for "Recent Records"; the full list is used for "All Records".
 $dx = sb_request('GET', 'diagnoses',
-    'select=diagnosis,shared_with_patient,created_at,patient:profiles!patient_id(full_name)'
-    . '&counselor_id=eq.' . urlencode($uid) . '&order=created_at.desc&limit=3', null, $token);
-$records = ($dx['status'] === 200 && is_array($dx['data'])) ? $dx['data'] : [];
+    'select=patient_id,diagnosis,shared_with_patient,created_at,patient:profiles!patient_id(full_name)'
+    . '&counselor_id=eq.' . urlencode($uid) . '&order=created_at.desc&limit=200', null, $token);
+$allRecords = ($dx['status'] === 200 && is_array($dx['data'])) ? $dx['data'] : [];
+$records = array_slice($allRecords, 0, 3);
 
 $detail = null;
 $viewId = $_GET['view'] ?? '';
@@ -200,24 +199,26 @@ page_start('counselor', 'Dashboard', '/counselor/', greeting() . ', ' . $fullNam
                         <div class="note-box"><strong>Counselor note</strong><small>Session notes are private to you. Only diagnoses you mark as shared are visible to patients.</small></div>
                     </div>
 
-                    <!-- All Patient Records Section (Inilagay na sa ilalim ng Recent Records) -->
+                    <!-- All patient records (scrollable list) -->
                     <div class="card">
                         <div class="card-head">
-                            <h2>All Patients</h2>
-                            <a class="link" href="/counselor/patients.php">View All</a>
+                            <div><h2>All Records</h2><p class="card-sub"><?php echo count($allRecords); ?> total</p></div>
+                            <a class="link" href="/counselor/record.php">Manage</a>
                         </div>
-                        <?php if (empty($allPatients)): ?>
-                            <p class="empty">No patients found.</p>
+                        <?php if (!$allRecords): ?>
+                            <p class="empty">No records yet.</p>
                         <?php else: ?>
-                            <?php foreach (array_slice($allPatients, 0, 5) as $pat): ?>
-                                <div class="result-item row-between">
-                                    <div>
-                                        <strong><?php echo e($pat['full_name']); ?></strong>
-                                        <small><?php echo e($pat['email'] ?? 'No email'); ?> &middot; <?php echo e(ucfirst($pat['patient_type'] ?? 'Student')); ?></small>
+                            <div class="records-scroll">
+                                <?php foreach ($allRecords as $r): ?>
+                                    <div class="result-item row-between">
+                                        <div>
+                                            <strong><?php echo e($r['diagnosis']); ?></strong>
+                                            <small><?php echo e($r['patient']['full_name'] ?? 'Patient'); ?> · <?php echo !empty($r['shared_with_patient']) ? 'Shared' : 'Private'; ?> · <?php echo e(fmt_dt($r['created_at'], 'M d, Y')); ?></small>
+                                        </div>
+                                        <a class="btn-sm" href="/counselor/record.php?patient_id=<?php echo e($r['patient_id']); ?>">View</a>
                                     </div>
-                                    <a class="btn-sm" href="/counselor/record.php?patient_id=<?php echo e($pat['id']); ?>">Record</a>
-                                </div>
-                            <?php endforeach; ?>
+                                <?php endforeach; ?>
+                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
