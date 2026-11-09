@@ -201,21 +201,15 @@ page_start('counselor', 'Dashboard', '/counselor/', greeting() . ', ' . $fullNam
 
                     <!-- All patient records (scrollable list) -->
                     <div class="card">
-                        <div class="card-head">
-                            <div><h2>All Records</h2><p class="card-sub"><?php echo count($allRecords); ?> total</p></div>
-                            <a class="link" href="/counselor/record.php">Manage</a>
-                        </div>
+                        <div class="card-head"><h2>All Records</h2><a class="link" href="/counselor/record.php">Manage</a></div>
                         <?php if (!$allRecords): ?>
                             <p class="empty">No records yet.</p>
                         <?php else: ?>
                             <div class="records-scroll">
                                 <?php foreach ($allRecords as $r): ?>
-                                    <div class="result-item row-between">
-                                        <div>
-                                            <strong><?php echo e($r['diagnosis']); ?></strong>
-                                            <small><?php echo e($r['patient']['full_name'] ?? 'Patient'); ?> · <?php echo !empty($r['shared_with_patient']) ? 'Shared' : 'Private'; ?> · <?php echo e(fmt_dt($r['created_at'], 'M d, Y')); ?></small>
-                                        </div>
-                                        <a class="btn-sm" href="/counselor/record.php?patient_id=<?php echo e($r['patient_id']); ?>">View</a>
+                                    <div class="result-item">
+                                        <strong><?php echo e($r['diagnosis']); ?></strong>
+                                        <small><?php echo e($r['patient']['full_name'] ?? 'Patient'); ?> · <?php echo !empty($r['shared_with_patient']) ? 'Shared' : 'Private'; ?> · <?php echo e(fmt_dt($r['created_at'], 'M d')); ?></small>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
